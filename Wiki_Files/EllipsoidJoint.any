@@ -1,0 +1,208 @@
+//This script shows how it is possible to create an ellipsoid to plane joint
+//The joint creates one constraint between an ellipsoid surface and a plane. The ellipsoid can be of arbitary size and
+//the plane can have any orientation.
+//This files needs the following properties to be define at the same level as the include statement of the file
+
+//Example:
+//   AnyRefNode &JointNode =.Segment.node1;  //this is the node where the ellipsoid is attatched too
+//   AnyRefFrame &JointNodeParent=.Segment;  //this is the reference frame of the attachement node
+//   AnyRefFrame &GlobalRefFrame=.GlobalRef.Node1;  //this is the node used for attaching the plane
+//   AnyVar a=0.075;  //long axis of ellipsoid
+//   AnyVar b=0.032;   //short axis of ellipsoid
+
+//This joint will only carry the force in the normal direction, this force can be both positive and negative
+//it is possible to add a conditional contact element that will create a unilateral force instead.
+
+
+// The actual body model goes in this folder
+AnyFolder EllipsoidJoint = {
+  
+  AnyVar a=.a;
+  AnyVar b=.b;
+  AnyVar c=b;
+  
+  AnyRefFrame  &PlaneRefFrame =.GlobalRefFrame;
+  
+  AnySeg PlaneContactSeg={
+    Mass=0;
+    Jii={0,0,0};
+    r0=.EllipsoidContactSeg.r0;
+    AnyRefNode n1={    sRel={..a,0,-..a};};
+    AnyRefNode n2={    sRel={..a,0,..a};};
+    AnyRefNode n3={    sRel={-..a,0,..a};};
+    AnyRefNode n4={    sRel={-..a,0,-..a};};
+    AnyRefNode n5={    sRel={..a,0,-..a};};
+    
+    AnyKinPLine VisualLine ={
+      AnyRefNode &ref1=.n1;
+      AnyRefNode &ref2=.n2;
+      AnyRefNode &ref3=.n3;
+      AnyRefNode &ref4=.n4;
+      AnyRefNode &ref5=.n5;
+      AnyDrawPLine drw={
+        RGB={0,0,1};Thickness=...a*0.005;};
+    };
+  };
+  
+  AnyRefFrame  &JointRef=.JointNode;
+  JointRef={
+    
+    AnyRefNode Focus1={
+      sRel={sqrt(..a^2-..b^2),0,0};
+      AnyDrawRefFrame drw={ScaleXYZ={1,1,1}*0.02;};
+    };
+    
+    AnyRefNode Focus2={
+      sRel={-sqrt(..a^2-..b^2),0,0};
+      AnyDrawRefFrame drw={ScaleXYZ={1,1,1}*0.02;};
+    };
+    
+    AnySurfEllipsoid ellipsoid={
+      Radius={..a,..b,..c};
+      AnyDrawParamSurf drw={
+        RGB={0,0,1};
+        Transparency=1;
+      };
+    };
+  };
+  
+  AnySeg EllipsoidContactSeg={
+    r0=..JointNodeParent.r0+..JointNode.sRel*..JointNodeParent.Axes0'+{0,-.b,0};
+    Mass=0;
+    Jii={0,0,0};
+    AnyVar size=0.06*.a;
+    
+    AnyRefNode n1={
+      sRel={.size*cos(0),0,.size*sin(0)}; 
+      AnyDrawRefFrame drw={
+        ScaleXYZ={1,1,1}*0.02*...a;
+        RGB={1,0,0};
+      };
+    };
+    AnyRefNode n2={
+      sRel={.size*cos(120*pi/180),0,.size*sin(120*pi/180)}; 
+      AnyDrawRefFrame drw={
+        ScaleXYZ={1,1,1}*0.02*...a;
+        RGB={1,0,0};
+      };
+    };
+    AnyRefNode n3={
+      sRel={.size*cos(240*pi/180),0,.size*sin(240*pi/180)}; 
+      AnyDrawRefFrame drw={
+        ScaleXYZ={1,1,1}*0.02*...a;
+        RGB={1,0,0};
+      };
+    };
+  };
+  
+  //this driver will amek sure that the triangle is placed on the surface of the ellipsoid
+  AnyKinEqSimpleDriver Strings={
+    
+    AnyKinPLine l1={
+      AnyRefFrame &ref1=..JointRef.Focus1;
+      AnyRefNode &ref2=..EllipsoidContactSeg.n1;
+      AnyRefFrame &ref3=..JointRef.Focus2;
+      AnyDrawPLine drw={RGB={0,1,0};Thickness=...a*0.0015;};
+    };
+    
+    AnyKinPLine l2={
+      AnyRefFrame &ref1=..JointRef.Focus1;
+      AnyRefNode &ref2=..EllipsoidContactSeg.n2;
+      AnyRefFrame &ref3=..JointRef.Focus2;
+      AnyDrawPLine drw={RGB={0,1,0};Thickness=...a*0.0015;};
+    };
+    
+    AnyKinPLine l3={
+      AnyRefFrame &ref1=..JointRef.Focus1;
+      AnyRefNode &ref2=..EllipsoidContactSeg.n3;
+      AnyRefFrame &ref3=..JointRef.Focus2;
+      AnyDrawPLine drw={RGB={0,1,0};Thickness=...a*0.0015;};
+    };
+    DriverPos={1,1,1}*2*.a;
+    DriverVel={0,0,0};
+    Reaction.Type={Off,Off,Off};
+  };
+  
+  //This driver will prevent the triangle from spinning around itself
+  AnyKinEq spinconstraint ={
+    
+    AnyKinMeasureLinComb lin =    {
+      AnyKinPLine l1={
+        AnyRefFrame &ref1=...JointRef.Focus1;
+        AnyRefNode &ref2=...EllipsoidContactSeg.n3;
+      };
+      
+      AnyKinPLine l2={
+        AnyRefFrame &ref1=...JointRef.Focus1;
+        AnyRefNode &ref2=...EllipsoidContactSeg.n2;
+      };
+      Coef = {{1,-1}};
+      
+    };
+    Reaction.Type={Off};
+    
+  };
+  
+  AnyRevoluteJoint ContactJoint ={
+    AnySeg &ref1=.EllipsoidContactSeg;
+    AnySeg &ref2=.PlaneContactSeg;
+    Axis=y;
+    Constraints.Reaction.Type={Off,On,Off,Off,Off};  //only the normal direction is carried
+    
+  };
+  
+  
+  AnyKinEqSimpleDriver  GroundContactSegConstraints ={
+    AnyKinMeasureOrg GroundContactSeg={
+      AnyKinLinear lin ={
+        Ref=0;
+        AnyRefFrame &ref1=...PlaneRefFrame;
+        AnySeg &ref2=...PlaneContactSeg;
+        
+      };
+      AnyKinRotational rot ={
+        AnyRefFrame &ref1=...PlaneRefFrame;
+        AnySeg &ref2=...PlaneContactSeg;
+        Type=RotAxesAngles;
+      };
+      
+      
+      MeasureOrganizer={1,3,4,5};
+      
+    };
+    DriverPos={0,0,0,0};
+    DriverVel={0,0,0,0};
+    Reaction.Type={Off,Off,Off,Off};
+    
+  };
+  
+  //add constraints to the contact segments so they are caaried by the objects they are floating on 
+  AnyReacForce ContactSegmentReactions={
+    
+    AnyKinLinear lin ={
+      Ref=0;
+      AnyRefFrame &ref1=..JointRef;
+      AnySeg &ref2=..EllipsoidContactSeg;
+    };
+    
+    AnyKinRotational rot ={
+      AnyRefFrame &ref1=..JointRef;
+      AnySeg &ref2=..EllipsoidContactSeg;
+      Type=RotAxesAngles;
+    };
+    
+    AnyKinLinear lin1 ={
+      Ref=0;
+      AnyRefFrame &ref1=..PlaneRefFrame;
+      AnySeg &ref2=..PlaneContactSeg;
+    };
+    
+    AnyKinRotational rot2 ={
+      Type=RotAxesAngles;
+      AnyRefFrame &ref1=..PlaneRefFrame;
+      AnySeg &ref2=..PlaneContactSeg;
+    };
+  };
+  
+}; // ellipsoid joint
+
