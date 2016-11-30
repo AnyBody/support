@@ -1,0 +1,250 @@
+/*
+
+This small example shows how the object AnyKinMeasureNormComb can be used to create a joint between multiple points and a surface. 
+The example contains a segment with a number of defined points; these are seen as grey spheres.  From the plane of the surface (red) to each of the grey spheres there 
+is a measure which is measuring the height of the nodes above the surface. These measures are then collected into one measure by the use of a AnyKinMeasureNormComb object. 
+By driving this measure to zero it will enforce "contact" with one of the spheres and the surface at any time, during the analysis "contact" may shift between the spheres. 
+Depending on the parameters of the AnyKinMeasureNormComb the contact can be more or less rigid and exact.
+
+The AnyKinMeasureNormComb object is a norm combination measure which creates a norm-like quantity of the inputs. The measure introduces a weight factor for each input and 
+an offset value. Using the right coefficients it will try to enforce one of the spheres to be in "contact" with the plane of surface at any time. 
+
+Please note that this not a traditional surface to surface joint, but in some cases it can be used instead. When using the measure the parameters of the measure should be 
+carefully adjusted since this will have impact on how the contact will work.  
+
+*/
+Main = {
+  
+  AnyFolder MyModel = {
+    
+    // Global Reference Frame
+    AnyFixedRefFrame GlobalRef = {
+      AnyDrawRefFrame drw2={};
+      AnyRefNode CylNode={
+        sRel={0,0,-0.05};
+        AnySurfCylinder drw={
+          Radius=1;
+          Length=0.05;
+          CapRatio=0;
+          AnyDrawParamSurf drw={RGB={1,0,0};};
+        };
+      };
+      
+      
+    };  // Global reference frame
+    
+    //This is the definition of the rotating object
+    AnySeg Wheel={
+      Mass=10;
+      Jii={0,0,0};
+      r0={0,0,0.3};
+      Axes0=RotMat(0.25*pi,x);
+      AnyDrawNodes drw={ScaleXYZ=0.03*{1,1,1};};
+      
+      AnyVar AngleStep=30;  //angle spacing
+      AnyVar R=0.4;  //radius of circle
+      AnyMat33 Scale={{1.5,0,0},{0,1,0},{0,0,1}}; //scaling 
+      AnyRefNode N1 ={         sRel ={.R*cos(.AngleStep*pi/180*0),.R*sin(.AngleStep*pi/180*0),0}*.Scale;      };
+      AnyRefNode N2 ={         sRel ={.R*cos(.AngleStep*pi/180*1),.R*sin(.AngleStep*pi/180*1),0}*.Scale;       };
+      AnyRefNode N3 ={         sRel ={.R*cos(.AngleStep*pi/180*2),.R*sin(.AngleStep*pi/180*2),0}*.Scale;       };
+      AnyRefNode N4 ={         sRel ={.R*cos(.AngleStep*pi/180*3),.R*sin(.AngleStep*pi/180*3),0}*.Scale;       };
+      AnyRefNode N5 ={         sRel ={.R*cos(.AngleStep*pi/180*4),.R*sin(.AngleStep*pi/180*4),0}*.Scale;       };
+      AnyRefNode N6 ={         sRel ={.R*cos(.AngleStep*pi/180*5),.R*sin(.AngleStep*pi/180*5),0}*.Scale;       };
+      AnyRefNode N7 ={         sRel ={.R*cos(.AngleStep*pi/180*6),.R*sin(.AngleStep*pi/180*6),0}*.Scale;       };
+      AnyRefNode N8 ={         sRel ={.R*cos(.AngleStep*pi/180*7),.R*sin(.AngleStep*pi/180*7),0}*.Scale;       };
+      AnyRefNode N9 ={         sRel ={.R*cos(.AngleStep*pi/180*8),.R*sin(.AngleStep*pi/180*8),0}*.Scale;       };
+      AnyRefNode N10 ={         sRel ={.R*cos(.AngleStep*pi/180*9),.R*sin(.AngleStep*pi/180*9),0}*.Scale;       };
+      AnyRefNode N11 ={         sRel ={.R*cos(.AngleStep*pi/180*10),.R*sin(.AngleStep*pi/180*10),0}*.Scale;       };
+      AnyRefNode N12 ={         sRel ={.R*cos(.AngleStep*pi/180*11),.R*sin(.AngleStep*pi/180*11),0}*.Scale;       };
+      
+      
+      AnyMat33 M=RotMat(pi*0.0,y); //Rotation matrix try to change it and see the difference!
+      AnyVar m=0.35; //disctance between circles
+      AnyVar Rm= 0.35; //Radius of circle
+      
+      AnyRefNode M1 ={         sRel ={.Rm*cos(.AngleStep*pi/180*0),.Rm*sin(.AngleStep*pi/180*0),.m}*.Scale*.M;      };
+      AnyRefNode M2 ={         sRel ={.Rm*cos(.AngleStep*pi/180*1),.Rm*sin(.AngleStep*pi/180*1),.m}*.Scale*.M;       };
+      AnyRefNode M3 ={         sRel ={.Rm*cos(.AngleStep*pi/180*2),.Rm*sin(.AngleStep*pi/180*2),.m}*.Scale*.M;       };
+      AnyRefNode M4 ={         sRel ={.Rm*cos(.AngleStep*pi/180*3),.Rm*sin(.AngleStep*pi/180*3),.m}*.Scale*.M;       };
+      AnyRefNode M5 ={         sRel ={.Rm*cos(.AngleStep*pi/180*4),.Rm*sin(.AngleStep*pi/180*4),.m}*.Scale*.M;       };
+      AnyRefNode M6 ={         sRel ={.Rm*cos(.AngleStep*pi/180*5),.Rm*sin(.AngleStep*pi/180*5),.m}*.Scale*.M;       };
+      AnyRefNode M7 ={         sRel ={.Rm*cos(.AngleStep*pi/180*6),.Rm*sin(.AngleStep*pi/180*6),.m}*.Scale*.M;       };
+      AnyRefNode M8 ={         sRel ={.Rm*cos(.AngleStep*pi/180*7),.Rm*sin(.AngleStep*pi/180*7),.m}*.Scale*.M;       };
+      AnyRefNode M9 ={         sRel ={.Rm*cos(.AngleStep*pi/180*8),.Rm*sin(.AngleStep*pi/180*8),.m}*.Scale*.M;       };
+      AnyRefNode M10 ={         sRel ={.Rm*cos(.AngleStep*pi/180*9),.Rm*sin(.AngleStep*pi/180*9),.m}*.Scale*.M;       };
+      AnyRefNode M11 ={         sRel ={.Rm*cos(.AngleStep*pi/180*10),.Rm*sin(.AngleStep*pi/180*10),.m}*.Scale*.M;       };
+      AnyRefNode M12 ={         sRel ={.Rm*cos(.AngleStep*pi/180*11),.Rm*sin(.AngleStep*pi/180*11),.m}*.Scale*.M;       };
+      
+      AnyMat33 L=RotMat(0.0,y);//Rotation matrix try to change it and see the difference!
+      
+      AnyVar Rl= 0.35;   //Radius between circles
+      AnyVar l=-0.35; //distance between circles
+      
+      AnyRefNode L1 ={         sRel ={.Rl*cos(.AngleStep*pi/180*0),.Rl*sin(.AngleStep*pi/180*0),.l}*.Scale*.L;      };
+      AnyRefNode L2 ={         sRel ={.Rl*cos(.AngleStep*pi/180*1),.Rl*sin(.AngleStep*pi/180*1),.l}*.Scale*.L;       };
+      AnyRefNode L3 ={         sRel ={.Rl*cos(.AngleStep*pi/180*2),.Rl*sin(.AngleStep*pi/180*2),.l}*.Scale*.L;       };
+      AnyRefNode L4 ={         sRel ={.Rl*cos(.AngleStep*pi/180*3),.Rl*sin(.AngleStep*pi/180*3),.l}*.Scale*.L;       };
+      AnyRefNode L5 ={         sRel ={.Rl*cos(.AngleStep*pi/180*4),.Rl*sin(.AngleStep*pi/180*4),.l}*.Scale*.L;       };
+      AnyRefNode L6 ={         sRel ={.Rl*cos(.AngleStep*pi/180*5),.Rl*sin(.AngleStep*pi/180*5),.l}*.Scale*.L;       };
+      AnyRefNode L7 ={         sRel ={.Rl*cos(.AngleStep*pi/180*6),.Rl*sin(.AngleStep*pi/180*6),.l}*.Scale*.L;       };
+      AnyRefNode L8 ={         sRel ={.Rl*cos(.AngleStep*pi/180*7),.Rl*sin(.AngleStep*pi/180*7),.l}*.Scale*.L;       };
+      AnyRefNode L9 ={         sRel ={.Rl*cos(.AngleStep*pi/180*8),.Rl*sin(.AngleStep*pi/180*8),.l}*.Scale*.L;       };
+      AnyRefNode L10 ={         sRel ={.Rl*cos(.AngleStep*pi/180*9),.Rl*sin(.AngleStep*pi/180*9),.l}*.Scale*.L;       };
+      AnyRefNode L11 ={         sRel ={.Rl*cos(.AngleStep*pi/180*10),.Rl*sin(.AngleStep*pi/180*10),.l}*.Scale*.L;       };
+      AnyRefNode L12 ={         sRel ={.Rl*cos(.AngleStep*pi/180*11),.Rl*sin(.AngleStep*pi/180*11),.l}*.Scale*.L;       };
+      
+      
+    };
+    
+    
+    
+    
+    //Graphical representation of the points on the wheel, this will connect the points with a blue line
+    AnyKinPLine PLine1={      
+      AnyRefNode &ref1=.Wheel.N1;
+      AnyRefNode &ref2=.Wheel.N2;
+      AnyRefNode &ref3=.Wheel.N3;
+      AnyRefNode &ref4=.Wheel.N4;
+      AnyRefNode &ref5=.Wheel.N5;
+      AnyRefNode &ref6=.Wheel.N6;
+      AnyRefNode &ref7=.Wheel.N7;
+      AnyRefNode &ref8=.Wheel.N8;
+      AnyRefNode &ref9=.Wheel.N9;
+      AnyRefNode &ref10=.Wheel.N10;
+      AnyRefNode &ref11=.Wheel.N11;
+      AnyRefNode &ref12=.Wheel.N12;
+      AnyRefNode &ref13=.Wheel.N1;
+      AnyDrawPLine drw2={                Thickness={0.02}; RGB={0,0,1};      };
+    };
+    
+    //Graphical representation of the points on the wheel, this will connect the points with a blue line
+    AnyKinPLine PLine2={
+      AnyRefNode &ref1=.Wheel.M1;
+      AnyRefNode &ref2=.Wheel.M2;
+      AnyRefNode &ref3=.Wheel.M3;
+      AnyRefNode &ref4=.Wheel.M4;
+      AnyRefNode &ref5=.Wheel.M5;
+      AnyRefNode &ref6=.Wheel.M6;
+      AnyRefNode &ref7=.Wheel.M7;
+      AnyRefNode &ref8=.Wheel.M8;
+      AnyRefNode &ref9=.Wheel.M9;
+      AnyRefNode &ref10=.Wheel.M10;
+      AnyRefNode &ref11=.Wheel.M11;
+      AnyRefNode &ref12=.Wheel.M12;
+      AnyRefNode &ref13=.Wheel.M1;
+      AnyDrawPLine drw2={                Thickness={0.02}; RGB={0,0,1};      };
+    };
+    
+    //Graphical representation of the points on the wheel, this will connect the points with a blue line
+    
+    AnyKinPLine PLine3={
+      AnyRefNode &ref1=.Wheel.L1;
+      AnyRefNode &ref2=.Wheel.L2;
+      AnyRefNode &ref3=.Wheel.L3;
+      AnyRefNode &ref4=.Wheel.L4;
+      AnyRefNode &ref5=.Wheel.L5;
+      AnyRefNode &ref6=.Wheel.L6;
+      AnyRefNode &ref7=.Wheel.L7;
+      AnyRefNode &ref8=.Wheel.L8;
+      AnyRefNode &ref9=.Wheel.L9;
+      AnyRefNode &ref10=.Wheel.L10;
+      AnyRefNode &ref11=.Wheel.L11;
+      AnyRefNode &ref12=.Wheel.L12;
+      AnyRefNode &ref13=.Wheel.L1;
+      AnyDrawPLine drw2={                Thickness={0.02}; RGB={0,0,1};      };
+    };
+    
+    //This is a slider segments 
+    AnySeg Slider={
+      Mass=0;
+      Jii={0,0,0};
+    };
+    
+    //Prismatic joint between slider segment and the global ref system, the slider segment can slide in the z direction 
+    AnyPrismaticJoint SliderJnt ={
+      AnyFixedRefFrame &ref1=.GlobalRef;
+      AnySeg &ref2= .Slider;
+      Axis=z;
+      
+    };
+    //Universal joint between the slider segment and the wheel segment, the wheel may rotate around the x and y axis
+    AnyUniversalJoint UniversalJnt ={
+      AnySeg &ref1= .Slider;
+      AnySeg &ref2= .Wheel;
+      Axis1=x;
+      Axis2=y;
+      
+    };
+    
+    //This is the driver for the universal joint, try to change the rotations and see the impact it will have on the model.
+    AnyKinEqSimpleDriver UniversalJntDrv={
+      AnyUniversalJoint &ref=.UniversalJnt;
+      DriverPos={0,0};
+      DriverVel={3*pi,0.5*pi};  //Try to change the values it will change the rotations
+      
+      
+    };
+    
+    //This is the contact definition bewteen the points on the wheel segment and the surface!
+    AnyKinEq WheelSliderMassXMeasureCon ={
+      AnyKinMeasureNormComb WheelSliderMassXMeasure  = 
+      {
+        Order = 35; //This is the order of the measure, try to play around with it!, the higher the order the more "rigid" the contact will be 
+        Offset = 0.6;  //This is the offset of the measure, this offset value should inprincple be as small as possible and at the same time ensure that pos value of 
+        //the measure do not become negative.
+        
+        //Each of the following lines measures the height of the point wrt to the surface
+        AnyKinMeasureOrg Nx1={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.N1;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Nx2={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.N2;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Nx3={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.N3;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Nx4={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.N4;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Nx5={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.N5;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Nx6={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.N6;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Nx7={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.N7;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Nx8={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.N8;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Nx9={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.N9;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Nx10={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.N10;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Nx11={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.N11;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Nx12={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.N12;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        
+        AnyKinMeasureOrg Mx1={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.M1;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Mx2={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.M2;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Mx3={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.M3;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Mx4={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.M4;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Mx5={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.M5;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Mx6={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.M6;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Mx7={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.M7;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Mx8={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.M8;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Mx9={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.M9;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Mx10={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.M10;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Mx11={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.M11;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Mx12={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.M12;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        
+        AnyKinMeasureOrg Lx1={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.L1;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Lx2={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.L2;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Lx3={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.L3;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Lx4={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.L4;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Lx5={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.L5;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Lx6={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.L6;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Lx7={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.L7;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Lx8={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.L8;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Lx9={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.L9;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Lx10={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.L10;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Lx11={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.L11;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        AnyKinMeasureOrg Lx12={AnyKinLinear lin={AnyRefNode &ref2=....Wheel.L12;  AnyFixedRefFrame &ref1=....GlobalRef; Ref=1;   };MeasureOrganizer={2};   };
+        
+        
+      };
+    };
+    
+  }; // MyModel
+  
+  // The study: Operations to be performed on the model
+  AnyBodyStudy MyStudy = {
+    AnyFolder &Model = .MyModel;
+    RecruitmentSolver = MinMaxSimplex;
+    Gravity = {0.0, -9.81, 0.0};
+    nStep=100;
+  };
+  
+};  // Main Main
