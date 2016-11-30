@@ -1,0 +1,51 @@
+ // Example of a AnyFunInterpol being used as input to a AnyOutputFun
+ // Author: David W. Wagner
+ // Ozen Engineering
+ // info@ozeninc.com
+ // Date: 6/29/09
+
+Main = {
+  
+  // The actual body model goes in this folder
+  AnyFolder MyModel = {
+    
+    AnyFunInterpol MarkerData = 
+    {
+      Type=Bspline;
+      BsplineOrder = 8;
+      FileName ="p1.txt";//reference to the name of the data file to use
+    };
+    
+    AnyOutputFun outputFunData1 = 
+    {
+      Val = .MarkerData(..MyStudy.t);
+    };
+    
+    AnyOutputFun outputFunData2 = 
+    {
+     AnyVar ddiff = .MarkerData.T[NumElemOf(.MarkerData.T)-1] - .MarkerData.T[0];
+     AnyVar dtStart = .MarkerData.T[0];
+     AnyVar tdiff = ..MyStudy.tEnd - ..MyStudy.tStart;
+     AnyVar tStart = ..MyStudy.tStart;
+     AnyVar t = ..MyStudy.t;
+     
+     AnyVar normTime01 = (t-tStart)/tdiff;
+     AnyVar adjustedTime_Data = (normTime01 * ddiff) + dtStart;
+     
+     
+     Val = .MarkerData(adjustedTime_Data);
+    };
+    
+  }; // MyModel
+  
+  
+  // The study: Operations to be performed on the model
+  AnyBodyStudy MyStudy = {
+    tStart = 0;
+    tEnd = 1;
+    nStep = 100;
+    AnyFolder &Model = .MyModel;
+    Gravity = {0.0, -9.81, 0.0};
+    };
+  
+};  // Main
