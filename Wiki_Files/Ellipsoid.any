@@ -1,0 +1,121 @@
+// This example shows how you can use an AnyKinMeasureNormComb
+// as a constraint that keeps a point on an ellipsoid surface.
+// This is relevant in some applications where joints are modeled
+// as constraints on surfaces that can be approximated by ellipsoids,
+// for instance the scapula-thoracic gliding plane of the shoulder.
+// John Rasmussen, November 30th, 2009.
+
+Main = {
+  AnyFolder MyModel = {
+
+    // Global Reference Frame
+    AnyFixedRefFrame GlobalRef = {
+      AnyDrawRefFrame drwr = {};
+      
+      // Change these parameters to modify the ellipsoid
+      AnyVec3 C = {0,0.5,1};        // Ellipsoid center
+      AnyVec3 R = {0.8, 0.5, 0.2};  // Ellipsoid radii
+
+      // Create a node and draw the ellipsoid.
+      // This is only for graphics purposes.
+      AnyRefNode EllipNode = {
+        sRel = .C;
+        AnySurfEllipsoid Ellipsoid = {
+          Radius = {..R[0], ..R[1], ..R[2]};
+          AnyDrawParamSurf drw = {
+            RGB = {0,1,0};
+            Opacity = 0.5;
+          };
+        };
+      };
+    };  // Global reference frame
+    
+    // Create a stick on which the point can slide. This constrains
+    // the point in all other directions than "normal" to the ellipsoid
+    // surface.
+    AnySeg Stick = {
+      Mass = 0;
+      Jii = {0,0,0};
+      r0 = .GlobalRef.C;
+      AnyRefNode Origin = {
+        sRel = {0,0,0};
+      };
+      AnyRefNode End = {
+        sRel = {1,0,0};
+      };
+      AnyDrawPLine drw = {
+        AnyRefFrame &r1 = .Origin;
+        AnyRefFrame &r2 = .End;
+        Thickness = 0.01;
+        RGB = {0,0,1};
+      };
+    };
+    
+    // Root the stick in the center of the ellipsoid. It actually
+    // does not have to be in the center.
+    AnyUniversalJoint Jnt = {
+      AnyRefFrame &r1 = Main.MyModel.GlobalRef.EllipNode;
+      AnyRefFrame &r2 = .Stick.Origin;
+      Axis1 = y;
+      Axis2 = z;
+    };
+    
+    // Drive the stick around in some more or less random motion
+    AnyKinEqSimpleDriver Driver = {
+      AnyUniversalJoint &Jnt = .Jnt;
+      DriverPos = {0, 0};
+      DriverVel = {10, 10};
+    };
+    
+    // Create a segment to serve as the point on the surface
+    AnySeg Point = {
+      Mass = 0;
+      Jii = {0,0,0};
+      r0 = Main.MyModel.GlobalRef.C + {Main.MyModel.GlobalRef.R[0],0,0};
+      AnyDrawNode drw = {
+        RGB = {1,0,0};
+      };
+    };
+
+    // Constrain the point to slide along the stick
+    AnyPrismaticJoint slider = {
+      AnyRefFrame &r1 = .Stick;
+      AnyRefFrame &r2 = .Point;
+      Axis = x;
+    };
+    
+    // Here's the point of the model: The position of the point along
+    // the stick is constrained to be on the ellipsoid surface. This is 
+    // done by means of the equation for an ellipsoid with center at
+    // the origin of the coordinate system:
+    // x^2/a + y^2/b + z^2/c = 1
+    // This fits a second order NormComb measure perfectly. The 1 on
+    // the right hand side of the equation is obtained by driving the
+    // measure to 1 by a simple driver.
+    AnyKinEqSimpleDriver ScapThoracGlide1 = {
+      AnyKinMeasureNormComb Comb = {
+        AnyKinLinear lin = {
+          AnyRefFrame &C = Main.MyModel.GlobalRef.EllipNode;
+          AnyRefFrame &Point = Main.MyModel.Point;
+          Ref = 0;
+        };
+        Order = 2;
+        Offset = 0;
+        Weight = {1/Main.MyModel.GlobalRef.R[0], 
+                  1/Main.MyModel.GlobalRef.R[1], 
+                  1/Main.MyModel.GlobalRef.R[2]};
+      };
+      DriverPos = {1};   // RHS of the allipsoid equation
+      DriverVel = {0};
+    };
+      
+  }; // MyModel
+
+  // The study: Operations to be performed on the model
+  AnyBodyStudy MyStudy = {
+    AnyFolder &Model = .MyModel;
+    Gravity = {0.0, -9.81, 0.0};
+    nStep = 1000;
+  };
+
+};  // Main
