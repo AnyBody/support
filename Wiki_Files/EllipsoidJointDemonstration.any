@@ -1,0 +1,72 @@
+//This small script shows how it is possible to create model having a joint between an ellipsoid and a 
+//plane
+//The ellipsoid-plane joint is created in an include file which is being used from this file.
+
+Main = {
+  
+  // The actual body model goes in this folder
+  AnyFolder MyModel = {
+    
+    // Global Reference Frame
+    AnyFixedRefFrame GlobalRef = {
+      AnyRefNode Node1={
+        sRel={0,0,0.05};
+        ARel=RotMat(-20*pi/180,x); 
+      };
+    };  // Global reference frame
+    
+    AnySeg Segment={
+      Mass=5; 
+      Jii={0.05,0.1,0.1};
+      AnyRefNode node1={
+        sRel={0.4,0,0.05};
+        ARel=RotMat(35*pi/180,z);
+      };
+      
+      AnyDrawSeg drw={};
+    };
+    
+    
+    AnyFolder EllipsoidJoint1={
+      AnyRefNode &JointNode =.Segment.node1;  //this is the node where the ellipsoid is attatched too
+      AnyRefFrame &JointNodeParent=.Segment;  //this is the reference frame of the attachement node
+      AnyRefFrame &GlobalRefFrame=.GlobalRef.Node1;  //this is the node used for attaching the plane
+      AnyVar a=0.075;  //long axis of ellipsoid
+      AnyVar b=0.032;   //short axis of ellipsoid
+      
+      #include "EllipsoidJoint.any"
+    };
+    
+    
+    //This driver drives the postion of the segment on the surface of the ellipsoid
+    //after adding four constraints to the model we now have two dof free for driving
+    AnyKinEqSimpleDriver SegmentDriver={
+      AnyKinLinear lin ={
+        AnyFixedRefFrame &ref1=..GlobalRef;
+        AnyRefNode &ref2=..Segment.node1;
+        
+      };
+      
+      AnyKinRotational rot ={
+        AnyRefNode &ref2=..Segment.node1;
+        AnyFixedRefFrame &ref1=..GlobalRef;
+        Type=RotAxesAngles;
+      };
+      MeasureOrganizer={0,2,3,4,5}; 
+      DriverPos={0,0,50*pi/180,0,0};
+      DriverVel={0,0,120*pi/180,0*pi/180,0};
+      
+    };
+    
+    
+  }; // MyModel
+  
+  // The study: Operations to be performed on the model
+  AnyBodyStudy MyStudy = {
+    AnyFolder &Model = .MyModel;
+    RecruitmentSolver = MinMaxSimplex;
+    Gravity = {0.0, -9.81, 0.0};
+    nStep=3000;
+  };
+  
+};  // Main
