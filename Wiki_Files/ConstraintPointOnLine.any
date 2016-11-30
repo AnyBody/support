@@ -1,0 +1,175 @@
+//This example shows how to constrain a node to be on a line defined by 2 other nodes of the model.
+//The 2 nodes defining the line can move during the simulation.
+//
+//Note that the line constraint in itself only takes away 2 dof, the remaining ones must be driven apart.
+
+
+
+Main = {
+
+  AnyFolder MyModel = {
+
+    
+    //**************************************************************
+    //Here are the 2 nodes that define the line, one of them moving.
+    //Those can be any nodes in a model.
+    //**************************************************************
+    
+    
+    //***Node1, fixed.***
+    AnyFixedRefFrame GlobalRef = {
+
+      AnyDrawRefFrame Draw = {};
+      
+      AnyRefNode Node1 = {
+        sRel = {1, 0, 1};
+        AnyDrawNode Draw = { ScaleXYZ = 0.05*{1,1,1}; };
+      };
+
+    };  // Global reference frame
+
+    
+    //***Node2, moving.***
+    AnySeg MovingSeg = 
+    {
+      r0 = {2, 0, 1};
+      Mass = 0;
+      Jii = {0, 0, 0};
+      
+      AnyRefNode Node2 = {
+        sRel = {0, 0, 0};
+        AnyDrawNode Draw = { ScaleXYZ = 0.05*{1,1,1}; };
+      };
+    };
+
+    
+    AnyKinEqSimpleDriver MovingSegDriver = 
+    {
+      AnyKinLinear Lin = 
+      {
+        AnyRefFrame &ref1 = ..MovingSeg;
+      };
+      
+      AnyKinRotational Rot = 
+      {
+        Type = RotAxesAngles;
+        AnyRefFrame &ref1 = ..MovingSeg;
+      };
+      DriverPos = {2, 0, 1, 0, 0, 0};
+      DriverVel = {0, 0.5, -1, 0, 0, 0};
+    };
+
+    
+    
+    
+    
+    
+    
+    
+    
+    //**************************************************
+    //Here begins the contruction of the line constraint.
+    //**************************************************
+    
+    
+    //***This is the dummy segment that gives the direction of the line during the simulation.***
+    
+    AnySeg DummySeg = 
+    {
+      r0 = {1, 0, 1};
+      Mass = 0;
+      Jii = {0, 0, 0};
+      
+      AnyDrawRefFrame Draw = { ScaleXYZ = 0.5*{1,1,1}; RGB = {0,0,1}; };
+    };
+    
+    
+    AnyUniversalJoint DummySegJoint = 
+    {
+      Axis1 = y;
+      Axis2 = z;
+      AnyRefFrame &ref1 = .GlobalRef.Node1;
+      AnyRefFrame &ref2 = .DummySeg;
+    };
+    
+    
+    AnyKinEqSimpleDriver DunnySegDriver = 
+    {
+      MeasureOrganizer = {1,2};
+      AnyKinLinear Lin = 
+      {
+        Ref = 0;
+        AnyRefFrame &ref1 = ..DummySeg;
+        AnyRefFrame &ref2 = ..MovingSeg.Node2;
+      };
+      
+      DriverPos = {0, 0};
+      DriverVel = {0, 0};
+    };
+    
+    
+
+    
+    //***This is the segment that is constrained to be on the line.***
+    AnySeg SegOnLine = 
+    {
+      r0 = {1.5, 0, 1};
+      Mass = 0;
+      Jii = {0, 0, 0};
+      
+      AnyRefNode Node = {
+        sRel = {0, 0, 0};
+        AnyDrawNode Draw = { ScaleXYZ = 0.05*{1,1,1}; RGB = {0,1,0}; };
+      };
+    };
+    
+    
+    //***This is the line constraint, it only takes away 2 dof.***
+    AnyKinEqSimpleDriver SegOnLineDriver1 = 
+    {
+      MeasureOrganizer = {1,2};
+      AnyKinLinear Lin = 
+      {
+        Ref = 0;
+        AnyRefFrame &ref1 = ..DummySeg;
+        AnyRefFrame &ref2 = ..SegOnLine.Node;
+      };
+      DriverPos = {0, 0};
+      DriverVel = {0, 0};
+    };
+    
+    
+    //***The 4 remaining dof must be driven as well, this could be any kind of driver.***
+    AnyKinEqSimpleDriver SegOnLineDriver2 = 
+    {
+      MeasureOrganizer = {0,3,4,5};
+      AnyKinLinear Lin = 
+      {
+        AnyRefFrame &ref1 = ..SegOnLine.Node;
+      };
+      
+      AnyKinRotational Rot = 
+      {
+        Type = RotAxesAngles;
+        AnyRefFrame &ref1 = ..SegOnLine.Node;
+      };
+      DriverPos = {1.5, 0, 0, 0};
+      DriverVel = {0, 0, 0, 0};
+    };
+    
+    
+    
+
+  }; // MyModel
+
+  
+  
+  
+  
+  // The study: Operations to be performed on the model
+  AnyBodyStudy MyStudy = {
+    AnyFolder &Model = .MyModel;
+    Gravity = {0.0, -9.81, 0.0};
+  };
+
+};  // Main
