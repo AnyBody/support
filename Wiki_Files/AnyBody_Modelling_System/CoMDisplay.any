@@ -1,0 +1,102 @@
+//This small model demonstrates how it is possible to create a visual object representing the collective
+//center of mass
+
+Main = {
+  
+  // The actual body model goes in this folder
+  AnyFolder Model = {
+    
+    
+    //some small demo model with two segments 
+    
+    // Global Reference Frame
+    AnyFixedRefFrame GlobalRef = {
+      AnyDrawRefFrame drw={};
+    };    
+    
+    AnyFolder Mechanism={
+      
+      AnySeg arm1 ={
+        Mass=20;
+        Jii={0.01,0.1,0.1};
+        AnyRefNode node1={sRel={-0.5,0,0};};
+        AnyRefNode node2={sRel={0.5,0,0};};
+        AnyDrawSeg drw={};
+      };
+      AnySeg arm2 ={
+        Mass=10;
+        Jii={0.01,0.1,0.1};
+        AnyRefNode node1={sRel={-0.5,0,0};};
+        AnyRefNode node2={sRel={0.5,0,0};};
+        AnyDrawSeg drw={};
+      };    
+      
+      AnyKinEqSimpleDriver drv1={
+        AnyRevoluteJoint  jnt={
+          
+          AnyFixedRefFrame &ref=...GlobalRef;   
+          AnyRefNode &ref2=..arm1.node1;
+          
+        };
+        DriverPos ={0};
+        DriverVel={2*pi};  
+      };
+      AnyKinEqSimpleDriver drv2={
+        AnyRevoluteJoint  jnt={
+          
+          AnyRefNode &ref1=..arm1.node2;
+          AnyRefNode &ref2=..arm2.node1;
+          
+        };
+        DriverPos ={0};
+        DriverVel={2*pi};  
+      };
+    };
+    
+    AnyKinCoM massmeasure= {
+      AnyFolder &Body = .Mechanism;
+    };
+    
+    AnySeg dummyseg={
+      Mass=0;
+      Jii={0,0,0};
+      AnyDrawNode drw={ ScaleXYZ={1,1,1}*0.2; RGB={0,0,1};};
+    };
+    
+    
+    AnyKinEq rotcon ={
+      AnyKinRotational rot={
+        AnyFixedRefFrame &ref1=..GlobalRef;
+        AnySeg &ref2=..dummyseg;
+        Type=RotAxesAngles;
+      };
+    };
+    
+    
+    AnyKinLinear lin={
+      AnyFixedRefFrame &ref1=.GlobalRef;
+      AnySeg &ref2=.dummyseg;
+    };
+    
+    //This will drive the massmeasure and the lin measure to be identical
+    //which will ensure that the pos of the dummy seg is positioned at the CoM
+    AnyKinEq Driver ={
+      AnyKinMeasureLinComb lincomb={
+        AnyKinLinear &ref1 =..lin;
+        AnyKinCoM &ref2 =..massmeasure;
+        Coef={{1,0,0,-1,0,0},{0,1,0,0,-1,0},{0,0,1,0,0,-1}}; //lin(x,y,z) = massmeasure(x,y,z) };
+      };
+      
+    };
+    
+  };// Model
+  
+  // The study: Operations to be performed on the model
+  AnyBodyStudy MyStudy = {
+    AnyFolder &Model = .Model;
+    RecruitmentSolver = MinMaxSimplex;
+    Gravity = {0.0, -9.81, 0.0};
+    nStep=500;
+  };
+  
+};  // Main

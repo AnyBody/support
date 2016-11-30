@@ -1,0 +1,104 @@
+//Small model made to display how to draw trajectories from nodes
+//The trajectory is created by making use of the AnyChart object.
+
+Main = {
+  
+  // The actual body model goes in this folder
+  AnyFolder MyModel = {
+    
+    // Global Reference Frame
+    AnyFixedRefFrame GlobalRef = {   };  // Global reference frame
+    
+    
+    //Segment 
+    AnySeg Segment={
+      Mass=0;
+      Jii={0,0,0};
+      AnyDrawSeg drw={};
+      AnyRefNode Node1={sRel={0,0,0};};
+      AnyRefNode Node2={sRel={1,0,0};};
+      
+    };
+    //cylindrical joint 
+    AnyCylindricalJoint CylJoint ={
+      AnyFixedRefFrame &ref1=.GlobalRef;
+      AnyRefNode &ref2=.Segment.Node1;
+      Axis=z;
+      
+    }; 
+    
+    //driver for the joint 
+    AnyKinEqSimpleDriver Driver ={
+      AnyCylindricalJoint &ref=.CylJoint;
+      DriverPos={0,0};
+      DriverVel={5,10*pi};
+    };
+    
+    
+    //This section creates an AnyChart which will do a drawing of a tracectory form a specified node
+    AnyFixedRefFrame Chart1Ref ={
+      
+      Origin = -0.5*Chart1.Style.Sizes;  //origin of the chart
+      AnyChart Chart1 = 
+      {
+        //This line defines the max size of the entire trajectory here it is a box of 100x100x100
+        Style.Sizes = 100*{1,1,1};    
+        
+        Series = {
+          
+          AnyChartSerie Trajectory =  {
+            Lines.RGB = {0,0,1};  //color of the line 
+            Lines.Thickness = 3.0;  //line thickness
+            Abscissa = "Main.MyStudy.Output.Model.Segment.Node2.r[0]";  //reference to the x coordinate
+            Abscissa2 = "Main.MyStudy.Output.Model.Segment.Node2.r[1]";//reference to the y coordinate
+            Value = "Main.MyStudy.Output.Model.Segment.Node2.r[2]";  //reference to the z coordinate
+          };
+          
+          //additional trajectories could be added here !!!
+        };
+        
+        AbsAxis = {
+          Visible = Off;   //make axis invisible 
+          Min = -0.5*.Style.Sizes[0];  //set the min value of the axis 
+          Max = -Min;  //set the max value fo the axis 
+          AutoMin = Off; //do not scale automatically
+          AutoMax = Off;
+        };
+        
+        AbsAxis2 = 
+        {
+          Visible = Off;
+          Min = -0.5*.Style.Sizes[0];
+          Max = -Min;
+          AutoMin = Off;
+          AutoMax = Off;
+        };
+        
+        ValueAxis = 
+        {
+          Visible = Off;
+          Min = -0.5*.Style.Sizes[0];
+          Max = -Min;
+          AutoMin = Off;
+          AutoMax = Off;
+          
+        };
+      };
+      
+    };
+    
+    
+    
+    
+    
+  }; // MyModel
+  
+  // The study: Operations to be performed on the model
+  AnyBodyStudy MyStudy = {
+    AnyFolder &Model = .MyModel;
+    RecruitmentSolver = MinMaxSimplex;
+    Gravity = {0.0, -9.81, 0.0};
+    nStep=1000;  
+  };
+  
+};  // Main

@@ -1,0 +1,64 @@
+// Small example which shows how to do coordinate transformations 
+// Transform a local vector in the global coordinate system
+// Transform a global  vector into a local coordinate system
+
+Main = {
+  
+  // The actual body model goes in this folder
+  AnyFolder MyModel = {
+    
+    // Global Reference Frame
+    AnyFixedRefFrame GlobalRef = {
+    };  // Global reference frame
+    
+      
+    AnySeg Bar ={
+      Mass=0;
+      Jii={0,0,0};
+      AnyRefNode node1 ={sRel={-0.5,0,0};};
+      AnyRefNode node2 ={sRel={0.5,0,0};};    
+      AnyDrawSeg drw={};
+    };
+    
+    AnyRevoluteJoint rev={  
+      AnyFixedRefFrame &ref1=.GlobalRef;
+      AnyRefNode &ref2=.Bar.node1;
+      Axis=z;
+    };
+    
+    AnyKinEqSimpleDriver drv={
+      AnyRevoluteJoint &ref=.rev;
+      DriverPos={0};
+      DriverVel={2*pi};
+    };
+   
+    AnyFolder FromGlobalToLocal={
+      AnyVec3 v={10,0,0};  //global vector
+      //Calculate the vector in the ref frame of the moving seg
+      //Take a look at the graph  Main.MyStudy.Output.Model.FromGlobalToLocal.res1 
+      //notice that at x starts with 10 and y with 0, as the segment rotates these numbers changes accordingly 
+      //when the segment is rotated 90 deg x is 0 and y is -10, this is because the vector is global and is measured
+      //in the local cooridnate system of the segment
+      AnyVec3 res1=v*.Bar.Axes;
+    };
+    
+    AnyFolder FromLocalToGlobal={
+      AnyVec3 v={10,0,0};  //local vector
+      //Calculate the local vector of the seg in the ref frame of global system
+      //Take a look at the graph  Main.MyStudy.Output.Model.FromLocalToGlobal.res1 
+      //notice that at x starts with 10 and y with 0, as the segment rotates these numbers changes accordingly 
+      //when the segment is rotated 90 deg x is 0 and y is 10 this is because now the vector rotates with the segment
+      //and is measured in the global ref
+      AnyVec3 res1=v*.Bar.Axes';
+    };
+
+  }; // MyModel
+  
+  // The study: Operations to be performed on the model
+  AnyBodyStudy MyStudy = {
+    AnyFolder &Model = .MyModel;
+    RecruitmentSolver = MinMaxSimplex;
+    Gravity = {0.0, -9.81, 0.0};
+  };
+  
+};  // Main

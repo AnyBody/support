@@ -1,0 +1,63 @@
+//Small model made to display how to create an output file  using the AnyOutputFile object
+Main = {
+  
+  AnyFolder MyModel = {
+    
+    // Global Reference Frame
+    AnyFixedRefFrame GlobalRef = {
+    };  // Global reference frame
+    
+    AnySeg Seg={
+      
+      Mass=1;
+      Jii={0.10,0.10,0.10};
+      AnyDrawRefFrame drw={};
+    };
+    
+    AnyRevoluteJoint jnt={
+      AnyFixedRefFrame &ref=.GlobalRef;
+      AnySeg &ref2=.Seg;
+      Axis=x;
+    };
+    
+    AnyKinEqSimpleDriver drv ={
+      AnyRevoluteJoint &ref=.jnt;
+      DriverPos={0};
+      DriverVel={2*pi};
+    };
+    
+  }; // MyModel
+  
+  // The study: Operations to be performed on the model
+  AnyBodyStudy MyStudy = {
+    AnyFolder &Model = .MyModel;
+    RecruitmentSolver = MinMaxSimplex;
+    Gravity = {0.0, -9.81, 0.0};
+    
+    AnyOutputFile outputfile =  {
+      FileName = "OutputTest.txt";  //name of the output file
+      NumberFormat = {
+        Digits = 15;  //number of digitsd
+        Width = 22;  //number characters in number
+        Style = ScientificNumber; //NumberStyle: Style specification. (=CompactNumber, Options: DecimalNumber | ScientificNumber | CompactNumber) 
+        //FormatStr = ""; //Complete format specification using C-style
+        //character specification known from the printf() function. 
+        //This overrides the any other specification. If not specified by the user it is determined automatically from the other specification.
+      };
+      SepSign = " ";  //separator sign between columns
+      LineSepSign = "";  //separator sign for line shifts
+
+      Header =    {
+        TitleSectionOnOff = On; //swicth the header on/off
+        ConstSectionOnOff = On; //swicth constan section on/off
+        VarSectionOnOff = On;   //swicth the variable on/off
+        ColumnNamesOnOff = On;  //swicth the column names on/off
+        LinePrefix = "";
+      };
+      
+      Search = "..MyModel.jnt.*";  //example: search for all output of the jnt
+      AnyVector ref=..MyModel.jnt.Pos;  //example: select a specufic output from the jnt
+    };
+  };
+
+};  // Main
