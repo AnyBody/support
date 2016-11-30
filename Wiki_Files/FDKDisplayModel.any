@@ -1,0 +1,105 @@
+//Small model consisting of one segment on a prismatic joint
+//The segment is loaded by a interpolated force and two pulling springs.
+//The one dof in the model is determined by the equilibrium of the forces 
+//using the force dependendent solver 
+
+//Try to alter the applied force values in the interpolation function and see what happens
+
+//For more details please see the section on force dependent kinematics (FDK) in the tutorials 
+//and manuals
+
+Main = {
+  
+  // The actual body model goes in this folder
+  AnyFolder MyModel = {
+    
+    // Global Reference Frame
+    AnyFixedRefFrame GlobalRef = {
+      
+      AnyRefNode node1={
+        sRel={1,0,0};
+        AnyDrawRefFrame drw={};
+        
+      };
+      
+      AnyRefNode node2={
+        sRel={-1,0,0};
+        AnyDrawRefFrame drw={};
+      };
+      
+    };  // Global reference frame
+    
+    AnySeg Slider ={
+      r0={0.2,0,0};
+      AnyDrawSeg drw={};
+      Mass=10;
+      Jii={0.1,0.1,0.1};
+    };
+    
+    
+    AnyPrismaticJoint Joint ={
+      AnyFixedRefFrame &ref1=.GlobalRef;
+      AnySeg &ref2=.Slider;
+      Axis=x;
+    };
+    
+    
+    //create a sping like force
+    AnyForce  Spring1 ={
+      AnyKinPLine Line ={
+        AnyFixedRefFrame &ref1=..GlobalRef.node1;
+        AnySeg &ref2=..Slider;
+        AnyDrawPLine drw={Thickness=0.005;RGB={0,0,1};};
+      };
+      F=-Line.Pos*1000;
+      
+    };
+
+  //create a sping like force
+   AnyForce  Spring2 ={
+      AnyKinPLine Line ={
+        AnyFixedRefFrame &ref1=..GlobalRef.node2;
+        AnySeg &ref2=..Slider;
+        AnyDrawPLine drw={Thickness=0.005;RGB={0,0,1};};
+      };
+      F=-Line.Pos*1000;
+      
+    };
+   
+    
+    //Create a driver for the model
+    AnyKinEqSimpleDriver Driver ={
+      AnyPrismaticJoint &ref=.Joint ;
+      DriverPos={0}; //This is the initial guess on the position
+      DriverVel={0};
+      CType = {ForceDep}; //The constraint type is set to be force dependent so it will find the
+      //position with equilibrium
+      Reaction.Type={Off}; //The reactions are swicthed off here because otherwise the spring and forces would 
+      //just be taken up by this reaction
+    };
+    
+    
+    //Create a force and apply it to the segment
+    AnyForce3D Force ={
+      AnyFunInterpol ForceFunction ={
+        T={0,0.25,0.5,0.75,1};
+        Data ={{1,30,550,880,20}};  //Try to alter these number and see the position change when runnig inverse analysis
+        Type=Bspline;
+      };
+      F={ForceFunction(Main.MyStudy.t)[0],0,0};
+      AnySeg &ref2=.Slider;
+      
+      
+    };
+    
+  }; // MyModel
+  
+  // The study: Operations to be performed on the model
+  AnyBodyStudy MyStudy = {
+    AnyFolder &Model = .MyModel;
+    InverseDynamics.ForceDepKinOnOff=On;  //Swicth the solver to run with the force dependent kinematics
+    
+    Gravity = {0.0, -9.81, 0.0};
+  };
+  
+};  // Main
