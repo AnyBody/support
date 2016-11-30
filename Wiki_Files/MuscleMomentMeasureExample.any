@@ -1,0 +1,235 @@
+// This simple model shows how it is possible to measure the moment crested by the muscles
+// around a joint and compare it with artificial reaction moments.
+// The model initialy contains muscles, but you can switch them off and replace them by 
+// artificial moments in the joint.
+
+// For an identical load case you will see that the muscles are providing exactly the same
+// moments around the joint as the artificial joint moments do.
+// Further explainations and comments can be found in the code below.
+
+Main = {
+
+  // The actual body model goes in this folder
+  AnyFolder MyModel = {
+
+    
+    
+    // Global Reference Frame
+    AnyFixedRefFrame GlobalRef = {
+      
+      AnyDrawRefFrame Draw = {};
+      
+      AnyRefNode MusNode1 = 
+      {
+        sRel = {0.3, 0, 0};
+        AnyDrawNode Draw = {};
+      };
+      
+      AnyRefNode MusNode2 = 
+      {
+        sRel = {-0.3, 0, 0};
+        AnyDrawNode Draw = {};
+      };
+      
+      AnyRefNode MusNode3 = 
+      {
+        sRel = {0, 0, 0.3};
+        AnyDrawNode Draw = {};
+      };
+      
+      AnyRefNode MusNode4 = 
+      {
+        sRel = {0, 0, -0.3};
+        AnyDrawNode Draw = {};
+      };
+            
+    };  // Global reference frame
+
+    
+    
+    
+    AnySeg Seg = 
+    {
+      r0 = {0, -0.4, 0};
+      Mass = 5;
+      Jii = {0.1, 0.01, 0.1};
+      
+      AnyRefNode GroundNode = 
+      {
+        sRel = {0, 0.4, 0};
+      };
+      
+      AnyRefNode MusNode1 = 
+      {
+        sRel = {0.1, -0.4, 0};
+      };
+      
+      AnyRefNode MusNode2 = 
+      {
+        sRel = {-0.1, -0.4, 0};
+      };
+      
+      AnyRefNode MusNode3 = 
+      {
+        sRel = {0, -0.4, 0.1};
+      };
+      
+      AnyRefNode MusNode4 = 
+      {
+        sRel = {0, -0.4, -0.1};
+      };
+      
+      AnyDrawSeg Draw = {};
+    }; // End Seg
+    
+    
+    
+    
+    //******* Joints and Drivers **************************************
+    
+    AnySphericalJoint Joint = 
+    {
+      AnyRefFrame &Ground = .GlobalRef;
+      AnyRefFrame &Seg = .Seg.GroundNode;
+      Orientation.Type = RotAxesAngles;
+    };
+    
+    AnyKinEqSimpleDriver Driver = 
+    {
+      DriverPos = {pi/6.765,0,pi/8.345};
+      DriverVel = {0,0,0};
+      AnySphericalJoint &Joint = .Joint;
+      Reaction.Type = {Off,Off,Off};
+    };
+    
+    //******************************************************************
+    
+    
+    
+    
+    
+
+
+    //******************** Reaction Force on joint *********************
+    // This part has to be include when removing the muscles, it is a
+    // reaction force that replaces the action of the muscles.
+    
+    // There is a very important point to notice here. It is the switch
+    // AngVelOnOff. Due to the specific way of measuring the rotations
+    // (Rotvector or RotAxesAngles) this switch has to be On in order to
+    // return a suitable moment vector.
+    // This apply to joints containing more than one rotation (SphericalJoint
+    // or UniversalJoint). A RevoluteJoint will not be concerned by this setting.
+    
+    // Also remenber that the kinematic measure used to drive the model should
+    // not used AngVelOnOff = On. that is why the kinematic measure has been
+    // duplicated, the joint itself is used for the driver and the AnyKinRotational
+    // is used to read the reaction forces.
+
+//    AnyKinRotational Rot = 
+//    {
+//      Type = RotAxesAngles;
+//      AngVelOnOff = On;
+//      AnyRefFrame &Ground = .GlobalRef;
+//      AnyRefFrame &Seg = .Seg.GroundNode;
+//    };
+//
+//    // This is the artificial moment in the joint to be compared with
+//    // the moment measure of the muscles.
+//    AnyReacForce ReacForce = 
+//    {
+//      AnyKinMeasure &Rot = .Rot;
+//    };
+    
+    //******************************************************************
+    
+
+    
+    
+    
+    
+    
+    //****************** Muscles and MomentMeasure *********************
+    // When the muscles are included the joint reaction force above must
+    // be outcomemted.
+    // And similarly all this section should be outcomented when the joint
+    // reaction force is activated.
+    
+    AnyViaPointMuscle Mus1 = 
+    {
+      AnyMuscleModel MusMdl = {F0 = 300;};
+      AnyRefFrame &Ground = .GlobalRef.MusNode1;
+      AnyRefFrame &Seg = .Seg.MusNode1;
+      AnyDrawMuscle Draw = {};
+    };
+    
+    AnyViaPointMuscle Mus2 = 
+    {
+      AnyMuscleModel MusMdl = {F0 = 300;};
+      AnyRefFrame &Ground = .GlobalRef.MusNode2;
+      AnyRefFrame &Seg = .Seg.MusNode2;
+      AnyDrawMuscle Draw = {};
+    };
+    
+    AnyViaPointMuscle Mus3 = 
+    {
+      AnyMuscleModel MusMdl = {F0 = 300;};
+      AnyRefFrame &Ground = .GlobalRef.MusNode3;
+      AnyRefFrame &Seg = .Seg.MusNode3;
+      AnyDrawMuscle Draw = {};
+    };
+    
+    AnyViaPointMuscle Mus4 = 
+    {
+      AnyMuscleModel MusMdl = {F0 = 300;};
+      AnyRefFrame &Ground = .GlobalRef.MusNode4;
+      AnyRefFrame &Seg = .Seg.MusNode4;
+      AnyDrawMuscle Draw = {};
+    };
+
+    
+    // This will read the moment created by the muscles around the joint.
+    // It can be compared with the joint reaction force.
+    AnyForceMomentMeasure2 MomentMeasure = 
+    {
+      // This the point of interest, it should therefore be the joint
+      // center of rotation.
+      // Notice that by default the resulting moment is given in global
+      // coordinate system. If you want the moment in the local joint 
+      // coordinate system you will have to use coordinates transformation.
+      AnyRefFrame &Ref = .GlobalRef;
+      
+      AnySeg &Seg = .Seg;
+      
+      AnyFolder &Mus1 = .Mus1;
+      AnyFolder &Mus2 = .Mus2;
+      AnyFolder &Mus3 = .Mus3;
+      AnyFolder &Mus4 = .Mus4;
+    };
+
+    //*****************************************************************
+
+    
+    
+    
+    // External moment applied to the segment
+    AnyMoment3D Moment = 
+    {
+      Mlocal = {0, 5, 0};
+      AnyRefFrame &Seg = .Seg;
+    };
+
+    
+    
+
+  }; // MyModel
+
+  // The study: Operations to be performed on the model
+  AnyBodyStudy MyStudy = {
+    AnyFolder &Model = .MyModel;
+    RecruitmentSolver = MinMaxSimplex;
+    Gravity = {0.0, -9.81, 0.0};
+    nStep = 1;
+  };
+
+};  // Main
