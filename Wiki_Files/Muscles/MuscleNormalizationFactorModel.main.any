@@ -1,0 +1,213 @@
+// Small example made to illustrate the use of normalization factor for muscles
+
+//The model contains two different models; they both have one joint but different muscle configurations.
+
+//StudyOneMuscle: This is the reference model with one joint and two muscles, able to pull on each side of the joint.
+
+//StudyTwoMuscle: This is the same as StudyOneMuscle, but one of the muscles has been split into two branches.
+//                A search item is used to point at a normalization factor used by the muscle recruitment.
+//
+//It can be verified that the normalization factor works by looking at the total force in the two models, here it can be seen that they are identical
+//So splitting the muscle into two braches did not change the model results.
+
+
+Main = {
+  
+  AnyOperationSequence RunAllModels = 
+  {
+    AnyOperation &m1 = Main.StudyOneMuscle.InverseDynamics;
+    AnyOperation &m2 = Main.StudyTwoMusclesCorrection.InverseDynamics;
+    
+    
+  };
+  
+  
+  // The actual body model goes in this folder
+  AnyFolder BasicModel = {
+    
+    // Global Reference Frame
+    AnyFixedRefFrame GlobalRef = {
+      
+      AnyDrawRefFrame drw = {};
+      
+      AnyRefNode Muscle1Org = {
+        sRel = {0.0,0.50,0.0};
+      };
+      
+      AnyRefNode Muscle2Org = {
+        sRel = {0.0,0.30,0.0};
+      };
+      
+      
+    };  // Global reference frame
+    
+    
+    AnySeg Seg = 
+    {
+      Mass = 10;
+      Jii = {0.01, 0.1, 0.1};
+      
+      AnyDrawSeg drw ={};
+      
+      AnyRefNode GroundNode = {
+        sRel = {-0.25,0.0,0.0};
+        AnyDrawNode drw ={};
+      };
+      
+      AnyRefNode Muscle1Ins = {
+        sRel = {0.25,0.0,0.0};
+      };
+      
+      AnyRefNode Muscle2Ins = {
+        sRel = {0.15,0.0,0.0};
+      };
+      
+    };
+    
+    
+    AnyRevoluteJoint GroundJoint = 
+    {
+      AnyRefFrame &Global = .GlobalRef;
+      AnyRefFrame &GroundNode = .Seg.GroundNode;
+    };
+    
+    
+    AnyKinEqSimpleDriver Driver = 
+    {
+      DriverPos = {0.0};
+      DriverVel = {70*pi/180};
+      AnyKinMeasure &Joint = .GroundJoint;
+      Reaction.Type = {Off};
+    }; 
+  }; // Basic Model
+  
+  
+  AnyFolder MuscleProperties = {
+    AnyVar Muscle1Strength = 800;    
+    
+    AnyVar Muscle2Strength = 1000;    
+    
+  };
+  
+  AnyFolder Muscles = {
+    AnyMuscleModel MuscleModel = 
+    {
+      F0 = ..MuscleProperties.Muscle1Strength;
+    };
+    
+    AnyViaPointMuscle m = 
+    {
+      AnyVar CorrectionFactor = 1.0;      
+      AnyMuscleModel &mdl = .MuscleModel;
+      AnyRefFrame &org = ..BasicModel.GlobalRef.Muscle1Org;
+      AnyRefFrame &ins = ..BasicModel.Seg.Muscle1Ins;
+      
+      AnyDrawMuscle drw ={};
+    };
+    
+  };
+  
+  AnyFolder OneMuscleModel = {
+    AnyMuscleModel MuscleModel = 
+    {
+      F0 = ..MuscleProperties.Muscle2Strength;
+    };
+    
+    AnyViaPointMuscle m = 
+    {
+      AnyVar CorrectionFactor = 1.0;
+      AnyMuscleModel &mdl = .MuscleModel;
+      AnyRefFrame &org = ..BasicModel.GlobalRef.Muscle2Org;
+      AnyRefFrame &ins = ..BasicModel.Seg.Muscle2Ins;
+      
+      AnyDrawMuscle drw ={};
+    };
+  };
+  
+  
+  
+  
+  AnyFolder TwoMusclesModelCorrection = {
+    
+    
+    AnyMuscleModel MuscleModel1 = 
+    {
+      F0 = ..MuscleProperties.Muscle1Strength;
+    };
+    
+    AnyViaPointMuscle m1 = 
+    {
+      AnyVar CorrectionFactor = 1.0;      
+      AnyMuscleModel &mdl = .MuscleModel1;
+      AnyRefFrame &org = ..BasicModel.GlobalRef.Muscle1Org;
+      AnyRefFrame &ins = ..BasicModel.Seg.Muscle1Ins;
+      
+      AnyDrawMuscle drw ={};
+    };
+    
+    AnyMuscleModel MuscleModel2 = 
+    {
+      
+      F0 = ..MuscleProperties.Muscle2Strength/2.0;
+    };
+    
+    AnyViaPointMuscle m2 = 
+    {
+      AnyVar p = Main.StudyTwoMusclesCorrection.InverseDynamics.Criterion.Power;
+      
+      AnyVar CorrectionFactor = (1.0/2.0)^(1/p);//If using earlier versions than 6.0.6 
+      //      AnyVar CorrectionFactor = (1.0/2.0);  //If using version 6.0.6 and above
+      
+      AnyMuscleModel &mdl = .MuscleModel2;
+      AnyRefFrame &org = ..BasicModel.GlobalRef.Muscle2Org;
+      AnyRefFrame &ins = ..BasicModel.Seg.Muscle2Ins;
+      
+      AnyDrawMuscle drw ={};
+    };
+    
+    AnyViaPointMuscle m3 = 
+    {
+      AnyVar p = Main.StudyTwoMusclesCorrection.InverseDynamics.Criterion.Power;
+      
+      AnyVar CorrectionFactor = (1.0/2.0)^(1/p);//If using earlier versions than 6.0.6 
+      //      AnyVar CorrectionFactor = (1.0/2.0);  //If using version 6.0.6 and above
+      
+      AnyMuscleModel &mdl = .MuscleModel2;
+      AnyRefFrame &org = ..BasicModel.GlobalRef.Muscle2Org;
+      AnyRefFrame &ins = ..BasicModel.Seg.Muscle2Ins;
+      
+      AnyDrawMuscle drw ={};
+    };
+  };  
+  
+  // The study: Operations to be performed on the model
+  AnyBodyStudy StudyOneMuscle = {
+    AnyFolder &BasicModel = .BasicModel;
+    AnyFolder &Muscles = .Muscles;
+    
+    AnyFolder &Muscles2 = .OneMuscleModel;
+    Gravity = {0.0, -9.81, 0.0};
+    
+    AnyVar TotalMuscleForce = Muscles2.m.Ft;
+    
+  };
+  
+  
+  
+  AnyBodyStudy StudyTwoMusclesCorrection = {
+    AnyFolder &BasicModel = .BasicModel;
+    
+    AnyFolder &Muscles2 = .TwoMusclesModelCorrection;
+    
+    Gravity = {0.0, -9.81, 0.0};
+    
+    AnyVar TotalMuscleForce = .TwoMusclesModelCorrection.m2.Ft+.TwoMusclesModelCorrection.m3.Ft;      
+    InverseDynamics.Criterion.PrimaryTerm.Weight_SearchName = "CorrectionFactor";
+    //   InverseDynamics.Criterion.PrimaryTerm.Nfactor_SearchName = "CorrectionFactor";
+    
+    
+  };
+  
+  
+
+};  // Main
