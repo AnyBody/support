@@ -1,0 +1,163 @@
+/* This model demonstrates the use of the Butterworth filter facility.
+The model filters a dataset, composed of a series of sinus waves with a lowpass, highpass, bandpass and bandstop filter
+and uses the filtered data to create interpolation functions as function of time
+that can be plotted after a kinematic analysis.
+
+The interpolation functions used throughout the file do not serve any other purpose
+than allowing one to plot the data using the charts. The filters allow you to filter any data given as an AnyFloat
+and it returns to you an AnyFloat with the filtered data.
+*/
+Main = { 
+  
+  AnyFolder MyModel = { 
+    /// The sample frequency
+    AnyVar SampleFreq = 100;
+    /// The filter orders (used for all filters)
+    AnyInt FilterOrders =4;
+    /// The number of samples
+    AnyInt NoSamples = 1000;
+     
+    
+    /// The time vector  
+    AnyVector TestTime = iarr(0,NoSamples)*1/SampleFreq;
+    /// The data vector
+    AnyVector TestData =  sin(2*pi*TestTime)+sin(10*2*pi*TestTime)+sin(30*2*pi*TestTime);
+    
+    /// Interpolation function of the unfiltered data
+    AnyFunInterpol InterPolUnFiltered = 
+    {
+      Type = Bspline;
+      BsplineOrder = 8;
+      T = .TestTime;
+      Data = {.TestData};
+    };
+    
+    AnyFloat UnfilteredInter = InterPolUnFiltered(Main.MyStudy.t);
+    
+    AnyFolder LowPassFilterDemo = {
+      AnyVar CutOffFrequency = 10.0; // Hz 
+      
+      /// A lowpass butterworth filter
+      AnyFunButterworthFilter LowPassFilter = 
+      {
+        FilterForwardBackwardOnOff = On;
+        AutomaticInitialConditionOnOff = On;
+        N = ..FilterOrders;
+        W = {1/(..SampleFreq*0.5)*.CutOffFrequency};
+        Type = LowPass;
+      };
+      
+      // filter the data
+      AnyVector Filtered = LowPassFilter(.TestData);
+      
+      /// Interpolation function of the lowpass filtered data
+      AnyFunInterpol InterPolLowPass = 
+      {
+        Type = PiecewiseLinear;
+        T = ..TestTime;
+        Data = {.Filtered};
+      };
+      
+      AnyFloat LowPassfilteredInter = InterPolLowPass(Main.MyStudy.t);  
+    };
+    
+    AnyFolder HighPassFilterDemo = {
+      AnyVar CutOffFrequency = 20.0; // Hz 
+      /// A highpass butterworth filter
+      AnyFunButterworthFilter HighPassFilter = 
+      {
+        FilterForwardBackwardOnOff = On;
+        AutomaticInitialConditionOnOff = On;        
+        N = ..FilterOrders;
+        W = {1/(..SampleFreq*0.5)*.CutOffFrequency};
+        Type = HighPass;
+      };
+      
+      
+      AnyVector Filtered = HighPassFilter(.TestData);
+      
+      /// Interpolation function of the highpass filtered data
+      AnyFunInterpol InterPolHighPass = 
+      {
+        Type = PiecewiseLinear;
+        T = ..TestTime;
+        Data = {.Filtered};
+      };
+      
+      AnyFloat HighPassfilteredInter = InterPolHighPass(Main.MyStudy.t);
+      
+    };
+    
+    
+    AnyFolder BandPassFilterDemo = {
+      AnyVar CutOffFrequencyLow = 10.0; // Hz 
+      AnyVar CutOffFrequencyHigh = 20.0; // Hz 
+      
+      /// A bandpass butterworth filter
+      AnyFunButterworthFilter BandPassFilter = 
+      {
+        FilterForwardBackwardOnOff = On;
+        AutomaticInitialConditionOnOff = On;
+        N = ..FilterOrders;
+        W = {1/(..SampleFreq*0.5)*.CutOffFrequencyLow, 1/(..SampleFreq*0.5)*.CutOffFrequencyHigh};
+        Type = BandPass;
+      };    
+      
+      AnyVector Filtered = BandPassFilter(.TestData);
+      
+     
+      /// Interpolation function of the bandpass filtered data
+      AnyFunInterpol InterPolBandPass = 
+      {
+        Type = PiecewiseLinear;
+        T = ..TestTime;
+        Data = {.Filtered};
+      };          
+      
+      
+      AnyFloat BandPassfilteredInter = InterPolBandPass(Main.MyStudy.t);
+      
+    };
+    
+    
+    AnyFolder BandStopFilterDemo = {
+      AnyVar CutOffFrequencyLow = 10.0; // Hz 
+      AnyVar CutOffFrequencyHigh = 20.0; // Hz 
+      
+      /// A bandstop butterworth filter
+      AnyFunButterworthFilter BandStopFilter = 
+      {
+        FilterForwardBackwardOnOff = On;        
+        AutomaticInitialConditionOnOff = On;        
+        N = ..FilterOrders;
+        W = {1/(..SampleFreq*0.5)*.CutOffFrequencyLow, 1/(..SampleFreq*0.5)*.CutOffFrequencyHigh};
+        Type = BandStop;
+      };    
+      
+      AnyVector Filtered = BandStopFilter(.TestData);
+      
+      /// Interpolation function of the bandstop filtered data
+      AnyFunInterpol InterPolBandStop = 
+      {
+        Type = PiecewiseLinear;
+        T = ..TestTime;
+        Data = {.Filtered};
+      };    
+      
+      AnyFloat BandStopfilteredInter = InterPolBandStop(Main.MyStudy.t);
+            
+    };  
+  };
+  
+  AnyMechStudy MyStudy = 
+  {
+    AnyFolder &Model = .MyModel;
+    tStart = 0;
+    tEnd = Main.MyModel.NoSamples*1/Main.MyModel.SampleFreq;
+    nStep = Main.MyModel.NoSamples+1;
+    Gravity = {0, 0, 0};
+    //RecruitmentSolver = MinMaxSimplex;
+  };
+  
+};  // Main  
+
