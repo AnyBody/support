@@ -1,0 +1,171 @@
+// Small example made to illustrate the differences between the interpolation functions types
+ // The model will create an interpolated line which are controlled by a number of control points p1-p10.
+ // Try to shift between the different types and you will see the differences it makes on the path of the line
+ // you can choose between the types:
+ // Piecewise linear
+ // Bezier
+  //bSpline
+  //The types can be shifted in the "Driver" object 
+
+  
+Main = {
+  
+  // The actual body model goes in this folder
+  AnyFolder Model = {
+    
+    //Points used for defining the line
+    AnyVec3  p1={0,0,0};
+    AnyVec3  p2={0.2,0.2,0.4};
+    AnyVec3  p3={0.4,0.3,0.3};
+    AnyVec3  p4={0.7,0.4,0.1};
+    AnyVec3  p5={0.9,0.5,0.1};
+    AnyVec3  p6={0.95,-0.2,0.3};
+    AnyVec3  p7={1.2,-0.3,0.6};
+    AnyVec3  p8={1.5,-0.1,0.8};
+    AnyVec3  p9={2,0.2,0.9};
+    AnyVec3  p10={2.4,0.5,1};
+    
+    // Global Reference Frame
+    AnyFixedRefFrame GlobalRef = {
+      
+      //Create some controlpoints 
+      
+      AnyRefNode p1={sRel=..p1;
+        AnyDrawRefFrame drw={ScaleXYZ={0.01,0.01,0.01};};
+      };
+      AnyRefNode p2={sRel=..p2;
+        AnyDrawRefFrame drw={ScaleXYZ={0.01,0.01,0.01};};
+      };
+      AnyRefNode p3={sRel=..p3;
+        AnyDrawRefFrame drw={ScaleXYZ={0.01,0.01,0.01};};
+      };
+      AnyRefNode p4={sRel=..p4;
+        AnyDrawRefFrame drw={ScaleXYZ={0.01,0.01,0.01};};
+      };
+      AnyRefNode p5={sRel=..p5;
+        AnyDrawRefFrame drw={ScaleXYZ={0.01,0.01,0.01};};
+      };    
+      AnyRefNode p6={sRel=..p6;
+        AnyDrawRefFrame drw={ScaleXYZ={0.01,0.01,0.01};};
+      };
+      AnyRefNode p7={sRel=..p7;
+        AnyDrawRefFrame drw={ScaleXYZ={0.01,0.01,0.01};};
+      };    
+      AnyRefNode p8={sRel=..p8;
+        AnyDrawRefFrame drw={ScaleXYZ={0.01,0.01,0.01};};
+      };    
+      AnyRefNode p9={sRel=..p9;
+        AnyDrawRefFrame drw={ScaleXYZ={0.01,0.01,0.01};};
+      };    
+      AnyRefNode p10={sRel=..p10;
+        AnyDrawRefFrame drw={ScaleXYZ={0.01,0.01,0.01};};
+      };    
+      
+      
+    };  // Global reference frame
+    
+    
+    
+    
+    
+    AnySeg  Seg={
+      Mass=0;Jii={0,0,0};
+      AnySurfSphere  Sphere= {
+        Radius=0.01;
+        AnyDrawParamSurf drw={};
+      };
+    };
+    
+    AnyKinLinear lin={
+      AnyFixedRefFrame  &ref1=.GlobalRef ;
+      AnySeg  &ref2=.Seg;
+    };
+    AnyKinEq RotDrv={
+      AnyKinRotational rot={
+        AnyFixedRefFrame  &ref1=..GlobalRef ;
+        AnySeg  &ref2=..Seg;
+        Type=RotAxesAngles;
+      };
+    };
+    
+    //Interpolation driver
+    AnyKinEqInterPolDriver Driver =  {
+      Type = Bspline ;  //try to swicth between the different types
+      BsplineOrder = 4;
+      //      Type = Bezier ;   //try to swicth between the different types
+      //       Type = PiecewiseLinear ;//try to swicth between the different types
+      
+      T =({0,1,2,3,4,5,6,7,8,9}/9)*Main.MyStudy.tEnd ;
+      //use the control points as data in the interpoaltion function
+      Data ={
+        {.p1[0],.p2[0],.p3[0],.p4[0],.p5[0],.p6[0],.p7[0],.p8[0],.p9[0],.p10[0]},
+        {.p1[1],.p2[1],.p3[1],.p4[1],.p5[1],.p6[1],.p7[1],.p8[1],.p9[1],.p10[1]},
+        {.p1[2],.p2[2],.p3[2],.p4[2],.p5[2],.p6[2],.p7[2],.p8[2],.p9[2],.p10[2]}};
+      AnyKinMeasure &ref = .lin;  //reference to the measue being driven
+    };
+    
+    
+    //This section is just made in order to draw the trajectory
+    AnyFixedRefFrame Chart1Ref ={
+      
+      Origin = -{5,5,5};
+      AnyChart Chart1 =  {
+        Style = {
+          Sizes = {10,10,10};
+          Axes = { Style = 0; };
+        };
+        
+        Series = 
+        {
+          AnyChartSerie series0 =           {
+            Lines.RGB = {0,0,1};
+            Abscissa = "Main.MyStudy.Output.Model.Seg.r[0]";
+            Abscissa2 = "Main.MyStudy.Output.Model.Seg.r[1]";
+            Value  = "Main.MyStudy.Output.Model.Seg.r[2]";
+            Lines = {  Thickness = 3.0; };
+          };
+        };
+        
+        AbsAxis = {
+          Visible = Off;
+          Min = -5;
+          Max = 5;
+          AutoMin = Off;
+          AutoMax = Off;
+        };
+        
+        AbsAxis2 = 
+        {
+          Visible = Off;
+          Min = -5;
+          Max = 5;
+          AutoMin = Off;
+          AutoMax = Off;
+        };
+        
+        ValueAxis = 
+        {
+          Visible = Off;
+          Min = -5;
+          Max = 5;
+          AutoMin = Off;
+          AutoMax = Off;
+        };
+      };
+      
+    };  //chart
+    
+    
+  }; // MyModel
+  
+  
+  // The study: Operations to be performed on the model
+  AnyBodyStudy MyStudy = {
+    AnyFolder &Model = .Model;
+    RecruitmentSolver = MinMaxSimplex;
+    Gravity = {0.0, -9.81, 0.0};
+    nStep=1000;
+  };
+  
+  
+};  // Main
