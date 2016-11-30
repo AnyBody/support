@@ -1,0 +1,52 @@
+//Small example showing how to add "rotational spring" in a joint using an interpolation function and an AnyForce object
+Main = {
+  
+  AnyFolder Model={
+    
+    // Global Reference Frame
+    AnyFixedRefFrame GlobalRef = {   };  // Global reference frame
+    
+    AnySeg Arm={
+      Mass=10;
+      Jii={0.1,0.1,0.1};
+      AnyRefNode node1={sRel={-0.5,0,0};};
+      AnyRefNode node2={sRel={0.5,0,0};};
+      AnyDrawSeg drw={};
+    };
+    
+    AnySphericalJoint Jnt = {
+      AnyRefFrame &L2Node = .GlobalRef;
+      AnyRefNode &L1Node = .Arm.node1;
+    };
+    
+    AnyKinEqSimpleDriver driver={
+      AnySphericalJoint &jnt =.Jnt;
+      DriverPos={0,0,0};
+      DriverVel={20,-20,20}*pi/180;
+    };
+    
+    //some stiffness function dependent on angle values
+    AnyFunInterpol Stiffness1={
+      T={-20,-10,0,10,20}*pi/180; //Angle values
+      Data={{10,5,0,-5,-10}}; //some moment values
+      Type=Bspline;
+    };
+    
+    
+    //adding this stiffness to the joints
+    AnyForce spring={
+      AnySphericalJoint &ref1=.Jnt;
+      F = {.Stiffness1(ref1.Pos[0])[0], .Stiffness1(ref1.Pos[1])[0], .Stiffness1(ref1.Pos[2])[0] };
+    };
+    
+  }; // MyModel
+
+  
+  // The study: Operations to be performed on the model
+  AnyBodyStudy MyStudy = {
+    AnyFolder &Model = .Model;
+    RecruitmentSolver = MinMaxSimplex;
+    Gravity = {0.0, -9.81, 0.0};
+  };
+  
+};  // Main
