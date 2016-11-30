@@ -1,0 +1,118 @@
+// This model has been made to illustrate the function of the AnyKinRotational and the difference between setting the Type o
+//of rotation to RotVector:
+
+//Here is the description of RotVector from the Manual:
+//Cartesian rotation vector (Type = RotVector): The Cartesian rotation vector measures a general
+//3-D orientation as a single rotation about a given axis. The rotation vector is a geometric
+//vector that is parallel with this axis of rotation and its length is equal to angle of rotation. In
+//must be emphasized that the velocity of the rotation vector is not equal to the angular velocity
+//vector, except in the planar case where the axis of rotation is constant.
+
+
+Main = {
+  
+  // The actual body model goes in this folder
+  AnyFolder MyModel = {
+    
+    // Global Reference Frame
+    AnyFixedRefFrame GlobalRef = {
+      AnyDrawRefFrame  drw={
+        RGB={0,0,1};
+        ScaleXYZ={1,1,1}*0.5;
+      };
+    };  // Global reference frame
+    
+    AnySeg Mass={
+      Mass=0;
+      Jii={0.0,0.0,0.0};
+      AnyRefNode Node1={
+        AnyDrawRefFrame  drw={
+          RGB={1,0,0};
+          ScaleXYZ={1,1,1}*0.5;
+        };
+      };
+    };
+    
+    AnyKinEq lincon={
+      AnyKinLinear lin ={
+        AnyRefNode  &ref1=..GlobalRef;
+        AnyRefNode &ref2=..Mass.Node1;
+      };
+    };
+    
+  }; // MyModel
+  
+  
+  
+  
+  //This study shows how the rotvector works 
+  //it will rotate the red coordinate system around the green
+  //Try to change the properties:
+  //   Axis
+  //   Angle
+  AnyBodyStudy RotVectorStudy1 = {
+    
+    AnyVar Angle =180;  //size of rotation in deg.
+    AnyVec3 Axis={1,1,1};  //rotation axis
+    AnyVec3 AxisNormalized =Axis/vnorm(Axis,2);  //normalized rotation axis
+    
+    
+    AnyDrawVector DrwRotAxisLength={
+      Vec=.AxisNormalized;
+      AnyRefNode  &ref1=..MyModel.GlobalRef;
+      Line.RGB={0,1,0};
+      Line.Thickness=0.005;
+    };
+    
+    AnyFolder &Model = .MyModel;
+    
+    AnyKinEqSimpleDriver drv ={
+      AnyKinRotational rot ={
+        Type=RotVector;
+        AnyRefNode  &ref1=...MyModel.GlobalRef;
+        AnyRefNode &ref2=...MyModel.Mass.Node1;
+      };
+      DriverPos=.AxisNormalized*.Angle*pi/180;
+      DriverVel={1,1,1};
+    };
+    RecruitmentSolver = MinMaxSimplex;
+    Gravity = {0.0, -9.81, 0.0};
+    nStep=100;
+    //  Kinematics.KinematicTol=5e-2;//set unrealistic high to avoid gimbal lock!
+  };
+  
+  
+   // This study shows how the RotAxesAngles works:
+  //it will rotate equally (Angle) on the three axes
+  // Try to change the following properties:
+  //     Angle   : amount of rotation on each axis;
+  //     Sequence of rotation : sequence of rotations
+  
+  AnyBodyStudy RotVectorStudy2 = {
+    AnyFolder &Model = .MyModel;
+  
+    AnyVar Angle=90; //this is the 
+    AnyIntArray  SequenceOfRotation ={0,1,2};    //Default is Z,Y,X = 0,1,2
+    
+    
+    AnyKinEqInterPolDriver drv ={
+      AnyKinRotational rot ={
+         Type=RotVector;
+        AnyRefNode  &ref1=...MyModel.GlobalRef;
+        AnyRefNode &ref2=...MyModel.Mass.Node1;
+      };
+      MeasureOrganizer=.SequenceOfRotation;
+      Type=PiecewiseLinear;
+      T=.tEnd*{0,1,2,3}/3;
+      Data={
+        {0,1,1,1},
+        {0,0,1,1},
+        {0,0,0,1}}*.Angle*pi/180;
+    };
+    RecruitmentSolver = MinMaxSimplex;
+    Gravity = {0.0, -9.81, 0.0};
+    nStep=1000;
+  };
+
+  
+};  // Main
