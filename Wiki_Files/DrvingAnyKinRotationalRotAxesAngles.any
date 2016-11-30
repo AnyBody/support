@@ -1,0 +1,75 @@
+//Small example to illustra the use of rotational measures and drivers...
+
+Main = {
+  
+  // The actual body model goes in this folder
+  AnyFolder MyModel = {
+    
+    // Global Reference Frame
+    AnyFixedRefFrame GlobalRef = { };  // Global reference frame
+    
+    AnySeg Mass={
+      Jii={0.2,0.2,0.2};
+      Mass=20;
+      
+      AnyRefNode node1 ={       sRel={-0.5,0,0};      };
+      AnyRefNode node2 ={        sRel={0.5,0,0};      };
+      AnyDrawSeg drw={RGB={0,0,1};};
+    };
+    
+    AnySphericalJoint Jnt={
+      AnyRefFrame &ref=.GlobalRef;
+      AnyRefFrame &ref2=.Mass.node1;
+      Orientation.Type=RotAxesAngles;
+      Orientation.Axis1=z;
+      Orientation.Axis2=y;
+      Orientation.Axis3=x;
+    }; 
+    
+    
+    AnyKinMeasureOrg rot0={
+      AnySphericalJoint &ref=.Jnt;
+      MeasureOrganizer={0};
+    };
+    
+    AnyKinMeasureOrg rot1={
+      AnySphericalJoint &ref=.Jnt;
+      MeasureOrganizer={1};
+    };
+    
+    AnyKinMeasureOrg rot2={
+      AnySphericalJoint &ref=.Jnt;
+      MeasureOrganizer={2};
+    };
+    
+    AnyKinEqSimpleDriver drv={
+      
+      //Try swapping between the two set of drivers and you will see the results are identical!
+      //The point is here to show that in a driver the rotation sequence do not matter... this is handled 
+      //in the rotational measure
+      
+      //AnyKinMeasureOrg &ref0 = .rot0;
+      //AnyKinMeasureOrg &ref1 = .rot1;
+      //AnyKinMeasureOrg &ref2 = .rot2;
+      //DriverPos={0,0,0};
+      //DriverVel={1,2,7};
+      
+      
+      AnyKinMeasureOrg &ref0 = .rot0;
+      AnyKinMeasureOrg &ref1 = .rot2;  //notice the swap compared to above
+      AnyKinMeasureOrg &ref2 = .rot1;
+      DriverPos={0,0,0};
+      DriverVel={1,7,2}; //notice the swap compared to above
+      
+    };
+
+    
+  }; // MyModel
+  
+  // The study: Operations to be performed on the model
+  AnyBodyStudy MyStudy = {
+    AnyFolder &Model = .MyModel;
+    Gravity = {0.0, -9.81, 0.0};
+  };
+  
+};  // Main
