@@ -1,47 +1,33 @@
-//Small script made to illustrate how recorded data can be adjusted without changing the raw data
-
+//Small model made to display how to use an input file  using the AnyInputFile object
 Main = {
   
-  // The actual body model goes in this folder
   AnyFolder MyModel = {
     
     // Global Reference Frame
     AnyFixedRefFrame GlobalRef = {
     };  // Global reference frame
     
-    //soem dummy segment 
-    AnySeg Mass={
-      Mass=1;
-      Jii={0.1,0.1,0.1};
-      AnyDrawRefFrame drw={};
-    };
-    
-    //This is the input function where the raw data is read into the system
-    AnyInputFile datafun =   {
-      FileName = "data.any";   //soem sample data
-   };
-   
-   
-    AnyKinEqInterPolDriver driver ={
-      AnyCylindricalJoint jnt ={
-        AnySeg &ref1=..Mass;
-        AnyFixedRefFrame &ref2=..GlobalRef;
-      };
-      Data={-(1/10)*.datafun.Data[0],-(5/10)*.datafun.Data[1]};  //here you can change the data from the input function 
-      T=.datafun.T;
-      Type = Bspline;
-      BsplineOrder = 4;
-      
-    };
-    
+        
   }; // MyModel
   
   // The study: Operations to be performed on the model
   AnyBodyStudy MyStudy = {
     AnyFolder &Model = .MyModel;
-    
+   
     Gravity = {0.0, -9.81, 0.0};
-    tEnd=5;
+    
+   
+    //this object reads in the file inputtest.txt and place the data into a data matrix
+    //this matrix can then be used for interpolationdrivers ect.
+    //once the model has loaded please try to look in the model tree and explore the Data folder which now 
+    //contains the  data loaded from the file
+    AnyInputFile inputfile = {
+      FileName = "inputtest.any";
+      //FileErrorContinueOnOff = Off; 
+    };
+
+   
+    
   };
-  
+
 };  // Main
