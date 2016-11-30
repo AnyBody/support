@@ -1,0 +1,63 @@
+Main = {
+  
+  // The actual body model goes in this folder
+  AnyFolder MyModel = {
+    
+    // Global Reference Frame
+    AnyFixedRefFrame GlobalRef = {
+    };  // Global reference frame
+    
+    AnySeg Mass1={
+      AnyDrawRefFrame drw={};
+      Mass=0;
+      Jii={0,0,0};
+    };
+    
+    AnyPrismaticJoint jnt1 =     {
+      Axis = z;
+      AnyRefFrame &ref1 = .GlobalRef;
+      AnyRefFrame &ref2 =.Mass1;
+    };
+    
+    AnyKinEqInterPolDriver interpolationdriver =  {
+      Type = Bspline;
+      BsplineOrder = 4;
+      T = {0,1,2,3,4,5}; //time vector from 0 to 4 sec 
+      Data = {{0,1,2,3,2,0}}; //example of data 
+      //FileName = ""; //you can also use a file instead of the two lines above!!
+      AnyKinMeasure &ref = .jnt1; //reference to the joint above..
+    }; //end interpoldriver
+    
+    AnySeg Mass2={
+      AnyDrawRefFrame drw={RGB={0,0,1};};
+      Mass=0;
+      Jii={0,0,0};
+    };
+    
+    AnyPrismaticJoint jnt2 =     {
+      Axis = z;
+      AnyRefFrame &ref1 = .GlobalRef;
+      AnyRefFrame &ref2 =.Mass2;
+    };
+    
+    AnyKinEq LinCombCon ={
+      AnyKinMeasureLinComb LinComb = {
+        AnyPrismaticJoint &ref1=..jnt1;
+        AnyPrismaticJoint &ref2=..jnt2;
+        Coef = {{1,-0.5}};  
+      };
+      
+    };
+    
+    
+  }; // MyModel
+  
+  // The study: Operations to be performed on the model
+  AnyBodyStudy MyStudy = {
+    AnyFolder &Model = .MyModel;
+    RecruitmentSolver = MinMaxSimplex;
+    Gravity = {0.0, -9.81, 0.0};
+    tEnd=5;
+  };
+  
+};  // Main
