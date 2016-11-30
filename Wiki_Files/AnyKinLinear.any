@@ -1,0 +1,74 @@
+//Small model made to illustrate the function of the Ref setting in the AnyKinLinear measure
+//the model has one segment, a rotational measure with a driver and a linear measure with a driver
+//Please find the linear measure "lin" and try out the difference of having the three different Ref settings.
+Main = {
+  
+  AnyFolder MyModel = {
+    
+    // Global Reference Frame
+    AnyFixedRefFrame GlobalRef = {
+      AnyDrawRefFrame drw={};
+      //create a new rotated node and make it visual as a blue cooridnate system
+      AnyRefNode RotatedNode ={
+        ARel=RotMat(pi*0.25,y);
+        AnyDrawRefFrame drw={RGB={0,0,1};};
+      };
+    };  // Global reference frame
+    
+     //This is just some segment made to have someting to look at
+    AnySeg Seg={
+      Mass=1;
+      Jii={0.10,0.10,0.10};
+      AnyDrawRefFrame drw={RGB={0,1,0};};
+    };
+    
+    //We need to drive the rotations of the segment 
+    AnyKinEqSimpleDriver  RotConstraints ={
+      AnyKinRotational Rot= {
+        AnyFixedRefFrame &ref=..GlobalRef;
+        AnySeg &ref2=..Seg;
+        Type=RotAxesAngles;
+      };
+      DriverPos={0.2*pi,0,0};  //rotate the segment around the z axis 
+      DriverVel={0,0,0};
+      
+    };
+    
+    
+    
+    AnyKinEqSimpleDriver drv ={
+      
+      //Create a linear measure
+      AnyKinLinear lin={
+        AnyRefFrame &ref1=..GlobalRef.RotatedNode;
+        AnySeg &ref2=..Seg;
+        //Please try to shift between the three settings and notice the difference it makes
+        Ref=-1;   //Ref=-1 this is default it will use the global ref as reference frame in the measure 
+        // Ref=0;   //Ref=0 will use the first mentioned reference frame in the measure in this case the GlobalRef Rotated node
+        // Ref=1;   //Ref=1 will use the second mentioned reference frame in the measure in this case the Seg, notice that the segment has been rotated wrt to global ref which makes a difference
+        
+      };
+      DriverPos={0,0,0};
+      DriverVel={2*pi,0,0};
+      
+    };
+    
+    //These lines has no other function than creating a visual line for the trajectory
+    AnyKinPLine TrajectoryDisplay={
+      AnyFixedRefFrame &ref1=.GlobalRef;
+      AnySeg &ref2=.Seg;
+      AnyDrawPLine drw={Thickness=0.005; RGB={0,0,1};};
+    };  
+    
+  }; // MyModel
+  
+  // The study: Operations to be performed on the model
+  AnyBodyStudy MyStudy = {
+    AnyFolder &Model = .MyModel;
+    RecruitmentSolver = MinMaxSimplex;
+    Gravity = {0.0, -9.81, 0.0};
+    nStep=25;
+    
+  };
+  
+};  // Main
