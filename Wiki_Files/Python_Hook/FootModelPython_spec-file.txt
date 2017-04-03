@@ -1,0 +1,41 @@
+# This file may be used to create an environment using:
+# $ conda create --name <env> --file <this file>
+# platform: win-64
+@EXPLICIT
+https://repo.continuum.io/pkgs/free/win-64/backports-1.0-py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/dateutil-2.4.1-py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/decorator-4.0.10-py27_1.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/enum34-1.1.6-py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/get_terminal_size-1.0.0-py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/ipython-4.2.0-py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/ipython_genutils-0.1.0-py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/jinja2-2.8-py27_1.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/jpeg-8d-vc9_2.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/libpng-1.6.22-vc9_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/libtiff-4.0.6-vc9_2.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/markupsafe-0.23-py27_2.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/matplotlib-1.4.0-np18py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/mpld3-0.2-py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/numpy-1.8.2-py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/openssl-1.0.2j-vc9_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/pandas-0.14.1-np18py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/path.py-8.2.1-py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/pathlib2-2.1.0-py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/pickleshare-0.7.4-py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/pip-9.0.1-py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/pyparsing-2.0.1-py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/pyqt-4.11.4-py27_7.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/pyreadline-2.1-py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/python-2.7.12-0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/pytz-2016.7-py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/qt-4.8.7-vc9_9.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/scipy-0.14.0-np18py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/setuptools-27.2.0-py27_1.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/simplegeneric-0.8.1-py27_1.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/sip-4.18-py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/six-1.10.0-py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/traitlets-4.3.1-py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/vs2008_runtime-9.00.30729.1-2.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/vtk-6.3.0-py27_1.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/wheel-0.29.0-py27_0.tar.bz2
+https://repo.continuum.io/pkgs/free/win-64/zlib-1.2.8-vc9_3.tar.bz2
