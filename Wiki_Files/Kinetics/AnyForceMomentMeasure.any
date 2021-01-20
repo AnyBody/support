@@ -1,0 +1,77 @@
+//This is a small model made to demonstrate the use of the AnyForceMomentMeasure 
+//it has one segment and one joint
+Main = {
+  
+  // The actual body model goes in this folder
+  AnyFolder MyModel = {
+    
+    // Global Reference Frame
+    AnyFixedRefFrame GlobalRef = {
+      AnyDrawRefFrame drw={};
+    };  // Global reference frame
+    
+    AnySeg Arm ={
+      Mass=2;
+      Jii={0.05,0.1,0.1};
+      AnyRefNode node1={sRel={-0.6,0,0};};
+      AnyRefNode node2={sRel={0.6,0,0};};
+      AnyDrawSeg drw={};
+    };
+    
+    AnyRevoluteJoint jnt={
+      AnyFixedRefFrame &ref1=.GlobalRef;
+      AnyRefNode &ref2=.Arm.node1;
+      Axis=z;
+    };
+    
+    AnyKinEqSimpleDriver drv={
+      AnyRevoluteJoint &drv=.jnt;
+      DriverPos={0};
+      DriverVel={2*pi}/Main.MyStudy.tEnd;
+    };
+    
+    //the output from this object is the force and moment measure in global coordinate system
+    //in the node .Arm.node1;
+    AnyForceMomentMeasure JointReactionMeasure =  {
+      AnyForceBase &ref1=.jnt.Constraints.Reaction; //this is a reference to the constraints of the joint
+      AnyRefNode &ref2=.Arm.node1;
+    };
+    
+    //this vector will draw the force measure in global ref
+    AnyDrawVector drawforceGlobal = {
+      Vec = .JointReactionMeasure.F/10;
+      Line =  {
+        Style = Line3DStyleFull;
+        Thickness = 0.05;
+        RGB = {0, 0, 0};
+      };
+      AnyRefNode &ref2=.Arm.node1;
+    };
+    
+    //This vector will draw the same force as above but it has first been rotated into the 
+    //the ref frame of the node and then the vector is drawn in the cooridnate system of this node.
+    //This means that the visual force ends up being the same as the vector above, as it should. 
+    AnyDrawVector drawforceLocal = {
+      Vec = .JointReactionMeasure.F/10*.Arm.node1.Axes;
+      Line =  {
+        Style = Line3DStyleFull;
+        Thickness = 0.05;
+        RGB = {0, 0, 0};
+      };
+      GlobalCoord=Off;
+      AnyRefNode &ref2=.Arm.node1;
+    };
+    
+
+  }; // MyModel
+  
+  // The study: Operations to be performed on the model
+  AnyBodyStudy MyStudy = {
+    AnyFolder &Model = .MyModel;
+    RecruitmentSolver = MinMaxSimplex;
+    Gravity = {0.0, -9.81, 0.0};
+    tEnd=1000;
+
+  };
+  
+};  // Main
